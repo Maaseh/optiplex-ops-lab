@@ -29,8 +29,8 @@ This project serves as both a practical learning experience and a portfolio demo
 
 - [x] Hardware preparation and BIOS configuration
 - [x] Proxmox VE installation on both nodes
-- [ ] Proxmox cluster configuration
-- [ ] Storage setup and management
+- [x] Proxmox cluster configuration
+- [x] Storage setup and management
 - [ ] Network configuration and VLAN isolation
 - [ ] Basic firewall rules and security
 
