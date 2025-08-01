@@ -155,3 +155,56 @@ After cluster creation, both nodes can be managed from either web interface:
 
 - **pve1:** https://172.16.10.10:8006
 - **pve2:** https://172.16.10.11:8006
+
+The cluster provides a **unified management interface** - you can manage both nodes from a single web interface. In the sidebar, you'll see both nodes under the datacenter tree structure.
+
+## Storage Configuration
+
+### Adding Additional Storage (2TB NVMe)
+
+Each node can have additional local storage configured for VMs and containers.
+
+#### 1. Format the Additional Disk
+
+```bash
+# Format the second NVMe drive with ext4
+mkfs.ext4 /dev/nvme0n1
+```
+
+#### 2. Create Mount Point and Mount
+
+```bash
+# Create mount point
+mkdir /mnt/data-storage
+
+# Mount the disk
+mount /dev/nvme0n1 /mnt/data-storage
+```
+
+#### 3. Make Mount Permanent
+
+Add to `/etc/fstab` for automatic mounting at boot:
+
+```bash
+echo "/dev/nvme0n1 /mnt/data-storage ext4 defaults 0 2" >> /etc/fstab
+```
+
+#### 4. Add Storage to Proxmox
+
+```bash
+# Add the storage to Proxmox configuration
+pvesm add dir data-storage --path /mnt/data-storage --content images,iso,vztmpl,backup,snippets
+```
+
+#### 5. Verify Storage
+
+The new storage should appear in the web interface under:
+**Datacenter → Storage → data-storage**
+
+### Storage Architecture
+
+**Current setup uses local storage per node:**
+- Each node manages its own storage independently
+- VMs created on a node use that node's local storage
+- Simple and robust for learning environment
+- No shared storage dependencies
