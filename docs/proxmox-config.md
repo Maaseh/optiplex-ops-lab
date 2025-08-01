@@ -208,3 +208,78 @@ The new storage should appear in the web interface under:
 - VMs created on a node use that node's local storage
 - Simple and robust for learning environment
 - No shared storage dependencies
+
+### Next Steps
+
+- Configure similar storage on the second node if needed
+- Create VM templates
+- Set up backup policies
+
+## Security Configuration
+
+### User Management and Sudo Setup
+
+#### 1. Install sudo (not included by default in Proxmox)
+
+```bash
+apt update
+apt install sudo needrestart
+```
+
+#### 2. Create Administrative Group
+
+```bash
+# Create sysadmins group
+groupadd sysadmins
+```
+
+#### 3. Create Non-Root User
+
+```bash
+# Create new user
+useradd -m -s /bin/bash username
+
+# Set password
+passwd username
+
+# Add user to sysadmins group
+usermod -aG sysadmins username
+```
+
+#### 4. Configure Sudoers
+
+Edit the sudoers file:
+
+```bash
+visudo
+```
+
+Add the following lines:
+
+```
+# User privilege specification
+root    ALL=(ALL:ALL) ALL
+
+# Group privilege specification  
+%sysadmins      ALL=(ALL:ALL) ALL
+%sudo   ALL=(ALL:ALL) ALL
+```
+
+#### 5. Verify Configuration
+
+Test the new user setup:
+
+```bash
+# Switch to new user
+su - username
+
+# Test sudo access
+sudo whoami  # Should return "root"
+```
+
+### Security Best Practices
+
+- **Avoid direct root login** for daily operations
+- **Use groups for role-based access** (sysadmins, developers, etc.)
+- **Regular security updates** via automated scripts
+- **Monitor sudo usage** in logs (/var/log/auth.log)
