@@ -219,7 +219,7 @@ The new storage should appear in the web interface under:
 
 ### User Management and Sudo Setup
 
-#### 1. Install sudo (not included by default in Proxmox)
+#### 1. Install Required Packages
 
 ```bash
 apt update
@@ -233,17 +233,14 @@ apt install sudo needrestart
 groupadd sysadmins
 ```
 
-#### 3. Create Non-Root User
+#### 3. Create Administrative User
 
 ```bash
-# Create new user
-useradd -m -s /bin/bash username
+# Create user with proper group assignment
+useradd -m -s /bin/bash -g sysadmins -c "Thomas Bonnet" maaseh
 
 # Set password
-passwd username
-
-# Add user to sysadmins group
-usermod -aG sysadmins username
+passwd maaseh
 ```
 
 #### 4. Configure Sudoers
@@ -265,16 +262,167 @@ root    ALL=(ALL:ALL) ALL
 %sudo   ALL=(ALL:ALL) ALL
 ```
 
-#### 5. Verify Configuration
+#### 5. Create Directory Structure with Proper Permissions
 
-Test the new user setup:
+```bash
+# Create scripts directory
+mkdir -p /bin/scripts/CustomScripts
+
+# Create logs directories
+mkdir -p /var/log/CustomLogs/daily-updates
+mkdir -p /var/log/CustomLogs/weekly-updates
+
+# Set ownership
+chown -R maaseh:sysadmins /bin/scripts/CustomScripts
+chown -R maaseh:sysadmins /var/log/CustomLogs
+
+# Set permissions (setgid bit for group inheritance)
+chmod 2774 /bin/scripts/CustomScripts
+chmod 2774 /var/log/CustomLogs/daily-updates
+chmod 2774 /var/log/CustomLogs/weekly-updates
+```
+
+#### 6. Verify Configuration
+
+Test the setup:
 
 ```bash
 # Switch to new user
-su - username
+su - maaseh
 
 # Test sudo access
 sudo whoami  # Should return "root"
+
+# Verify directory permissions
+ls -la /bin/scripts/
+ls -la /var/log/CustomLogs/
+```
+
+## Automated Updates System
+
+### Overview
+
+The system implements a two-tier update strategy:
+- **Daily security updates**: Critical security patches without reboot
+- **Weekly kernel updates**: Kernel and system updates with intelligent reboot
+
+### Security Updates (Daily)
+
+#### Script: daily-security-updates.sh
+
+**Location**: `/bin/scripts/CustomScripts/daily-security-updates.sh`
+
+**Features**:
+- Detects security updates using `apt-get -s dist-upgrade`
+- Installs only security-related packages
+- Comprehensive logging to `/var/log/CustomLogs/daily-updates/Security_updates.log`
+- Service restart detection with `needrestart`
+- Error handling and validation
+
+#### Service Configuration
+
+**Service file**: `/etc/systemd/system/security-updates.service`
+
+```ini
+[Unit]
+Description=Daily Security Updates
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/scripts/CustomScripts/daily-security-updates.sh
+User=root
+```
+
+**Timer file**: `/etc/systemd/system/security-updates.timer`
+
+```ini
+[Unit]
+Description=Daily Security Updates Timer
+Requires=security-updates.service
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target
+```
+
+### Kernel Updates (Weekly)
+
+#### Script: weekly-kernel-updates.sh
+
+**Location**: `/bin/scripts/CustomScripts/weekly-kernel-updates.sh`
+
+**Features**:
+- Detects kernel updates using targeted package filtering
+- Installs kernel, headers, and related packages
+- Intelligent reboot detection with `needrestart -r`
+- Cluster notification via `wall` command
+- Configurable reboot delay (60 seconds default)
+- Comprehensive logging to `/var/log/CustomLogs/weekly-updates/Kernel_updates.log`
+
+#### Service Configuration
+
+**Service file**: `/etc/systemd/system/kernel-updates.service`
+
+```ini
+[Unit]
+Description=Weekly Kernel Updates
+
+[Service]
+Type=oneshot
+ExecStart=/bin/scripts/CustomScripts/weekly-kernel-updates.sh
+User=root
+```
+
+**Timer file**: `/etc/systemd/system/kernel-updates.timer`
+
+```ini
+[Unit]
+Description=Weekly Kernel Updates Timer
+Requires=kernel-updates.service
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+### Enable and Start Services
+
+```bash
+# Enable and start security updates
+systemctl enable security-updates.timer
+systemctl start security-updates.timer
+
+# Enable and start kernel updates  
+systemctl enable kernel-updates.timer
+systemctl start kernel-updates.timer
+
+# Verify timers are active
+systemctl list-timers
+```
+
+### Monitoring and Logs
+
+**Log locations**:
+- Security updates: `/var/log/CustomLogs/daily-updates/Security_updates.log`
+- Kernel updates: `/var/log/CustomLogs/weekly-updates/Kernel_updates.log`
+
+**Check timer status**:
+```bash
+# View timer status
+systemctl status security-updates.timer
+systemctl status kernel-updates.timer
+
+# View recent service runs
+journalctl -u security-updates.service
+journalctl -u kernel-updates.service
 ```
 
 ### Security Best Practices
@@ -283,3 +431,5 @@ sudo whoami  # Should return "root"
 - **Use groups for role-based access** (sysadmins, developers, etc.)
 - **Regular security updates** via automated scripts
 - **Monitor sudo usage** in logs (/var/log/auth.log)
+- **Staggered reboots** in cluster environment (pve1 at 3h, pve2 at 4h)
+- **Comprehensive logging** for audit and troubleshooting
