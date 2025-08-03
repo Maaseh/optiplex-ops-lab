@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Security Updates Timer
+Requires=security-updates.service
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target

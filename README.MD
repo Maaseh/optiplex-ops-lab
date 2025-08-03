@@ -31,6 +31,8 @@ This project serves as both a practical learning experience and a portfolio demo
 - [x] Proxmox VE installation on both nodes
 - [x] Proxmox cluster configuration
 - [x] Storage setup and management
+- [x] Create automatic updates scripts
+- [x] Create Services and timers for the update scripts
 - [ ] Network configuration and VLAN isolation
 - [ ] Basic firewall rules and security
 
@@ -112,6 +114,7 @@ optiplex-ops-lab/
 ├── k8s-manifests/          # Kubernetes deployments
 ├── monitoring/             # Grafana dashboards and alerts
 ├── scripts/                # Automation and utility scripts
+├── services/                # Custom services created
 └── ci-cd/                  # Pipeline configurations
 ```
 

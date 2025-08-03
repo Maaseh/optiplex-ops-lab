@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily Security Updates
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/scripts/CustomScripts/daily-security-updates.sh
+User=root

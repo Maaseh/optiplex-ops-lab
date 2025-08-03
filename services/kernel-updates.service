@@ -1,0 +1,7 @@
+[Unit]
+Description=Kernel Updates Script
+
+[Service]
+Type=oneshot
+ExecStart=/bin/scripts/CustomScripts/weekly-kernel-updates.sh
+User=root

@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly Kernel Updates
+Requires=kernel-updates.service
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+
+[Install]
+WantedBy=timers.target
