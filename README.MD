@@ -24,7 +24,7 @@ This project serves as both a practical learning experience and a portfolio demo
 
 ## Technology Roadmap
 
-### Phase 1: Foundation Infrastructure (Current)
+### Phase 1: Foundation Infrastructure 
 **Status: Done**
 
 - [x] Hardware preparation and BIOS configuration
@@ -36,7 +36,7 @@ This project serves as both a practical learning experience and a portfolio demo
 - [x] Network configuration and VLAN isolation
 - [x] Basic firewall rules and security
 
-### Phase 2: Container Orchestration
+### Phase 2: Container Orchestration (Current)
 **Status: In-Progress**
 
 - [ ] Kubernetes (K3s) cluster deployment
