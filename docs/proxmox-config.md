@@ -433,3 +433,105 @@ journalctl -u kernel-updates.service
 - **Monitor sudo usage** in logs (/var/log/auth.log)
 - **Staggered reboots** in cluster environment (pve1 at 3h, pve2 at 4h)
 - **Comprehensive logging** for audit and troubleshooting
+
+## Network Security Configuration
+
+### Firewall Rules Overview
+
+The network security follows a zero-trust approach with minimal required access:
+
+- **No external access** to administrative interfaces
+- **Outbound connections** allowed for updates and legitimate traffic
+- **Internal cluster communication** unrestricted
+- **Administrative access** limited to authorized devices only
+
+### UDM Firewall Rules Configuration
+
+**Important**: Rules are evaluated sequentially by position. Following enterprise standards with reserved ranges:
+
+- **1-99**: Reserved for emergency/critical exceptions
+- **100-199**: Allow Rules (legitimate traffic)
+- **200-299**: Application Rules (business services)
+- **300-399**: Infrastructure Rules (monitoring, backup)
+- **900-999**: Deny Rules (security/blocking)
+
+#### **Rule Position 100** - Admin Access
+```
+Name: HOMELAB-Allow-Admin
+Action: ALLOW
+Source: 192.168.1.0/24 (Admin Network)
+Destination: 10.10.20.0/24 (Server VLAN)
+Ports: 22, 8006
+Protocol: TCP
+Description: Administrative access to SSH and Proxmox web interface
+```
+
+#### **Rule Position 110** - System Updates
+```
+Name: HOMELAB-Allow-Updates
+Action: ALLOW
+Source: 10.10.20.0/24 (Server VLAN)
+Destination: ANY (Internet)
+Ports: 80, 443, 53, 22, 123
+Protocol: TCP (80,443,22,123), UDP (53,123)
+Description: Outbound access for system updates, DNS, NTP, and Git
+```
+
+#### **Rule Position 120** - Cluster Communication
+```
+Name: HOMELAB-Allow-Cluster
+Action: ALLOW
+Source: 10.10.20.0/24
+Destination: 10.10.20.0/24  
+Ports: ALL
+Protocol: ALL
+Description: Internal cluster communication and inter-node traffic
+```
+
+#### **Rule Position 900** - External Block
+```
+Name: HOMELAB-Block-External
+Action: DENY
+Source: ANY (Internet)
+Destination: 10.10.20.0/24
+Ports: ALL  
+Protocol: ALL
+Description: Block all external access attempts to server VLAN
+```
+
+### Enterprise Rule Numbering Standards
+
+| Range | Purpose | Example Usage |
+|-------|---------|---------------|
+| 1-99 | Emergency/Critical | Incident response, temporary fixes |
+| 100-199 | Allow Rules | Legitimate business traffic |
+| 200-299 | Application Rules | Web services, databases, APIs |
+| 300-399 | Infrastructure | Monitoring, backup, management |
+| 900-999 | Deny Rules | Security blocking, threat mitigation |
+
+### Traffic Flow Summary
+
+| Direction | Source | Destination | Ports | Action | Rule Position |
+|-----------|--------|-------------|-------|---------|---------------|
+| **Admin Access** | 192.168.1.0/24 | 10.10.20.0/24 | 22, 8006 | ✅ ALLOW | 100 |
+| **System Updates** | 10.10.20.0/24 | Internet | 80,443,53,22,123 | ✅ ALLOW | 110 |
+| **Cluster Communication** | 10.10.20.0/24 | 10.10.20.0/24 | ALL | ✅ ALLOW | 120 |
+| **External Attacks** | Internet | 10.10.20.0/24 | ALL | ❌ DENY | 900 |
+| **Other VLANs** | Other networks | 10.10.20.0/24 | ALL | ❌ DENY | 900 |
+
+### Verification Commands
+
+After implementing rules, verify connectivity:
+
+```bash
+# Test SSH access from admin PC
+ssh admin@10.10.20.10
+
+# Test system updates from server
+sudo apt update
+
+# Test cluster communication
+pvecm status
+
+# Verify firewall logs in UDM interface
+```

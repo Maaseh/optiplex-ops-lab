@@ -25,7 +25,7 @@ This project serves as both a practical learning experience and a portfolio demo
 ## Technology Roadmap
 
 ### Phase 1: Foundation Infrastructure (Current)
-**Status: In Progress**
+**Status: Done**
 
 - [x] Hardware preparation and BIOS configuration
 - [x] Proxmox VE installation on both nodes
@@ -33,11 +33,11 @@ This project serves as both a practical learning experience and a portfolio demo
 - [x] Storage setup and management
 - [x] Create automatic updates scripts
 - [x] Create Services and timers for the update scripts
-- [ ] Network configuration and VLAN isolation
-- [ ] Basic firewall rules and security
+- [x] Network configuration and VLAN isolation
+- [x] Basic firewall rules and security
 
 ### Phase 2: Container Orchestration
-**Status: Planned**
+**Status: In-Progress**
 
 - [ ] Kubernetes (K3s) cluster deployment
 - [ ] Multi-master high availability setup
