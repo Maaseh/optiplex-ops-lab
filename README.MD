@@ -39,8 +39,7 @@ This project serves as both a practical learning experience and a portfolio demo
 ### Phase 2: Container Orchestration (Current)
 **Status: In-Progress**
 
-- [ ] Kubernetes (K3s) cluster deployment
-- [ ] Multi-master high availability setup
+- [x] Kubernetes (K3s) cluster deployment
 - [ ] Ingress controller configuration (Traefik)
 - [ ] Persistent volume management
 - [ ] Basic service deployments
