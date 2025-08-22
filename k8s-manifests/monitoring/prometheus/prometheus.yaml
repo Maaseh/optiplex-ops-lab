@@ -29,6 +29,8 @@ spec:
         - name: prometheus-pv
           persistentVolumeClaim:
             claimName: prometheus-pvc
+          configMap:
+            name: prometheus-config
 
 ---
 
@@ -46,3 +48,34 @@ spec:
     app: prometheus
   sessionAffinity: None
   type: LoadBalancer
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |-
+    global:
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      evaluation_interval: 60s
+      external_labels:
+        cluster: ${CLUSTER_NAME}
+    scrape_configs:
+      - job_name: "Kubernetes-APIserver"
+        kubernetes_sd_configs:
+          - role: endpoints
+          scheme: http
+          tls_config:
+            insecure_skip_verify: true
+      - job_name: "grafana"
+        static_configs:
+          - target: ['grafana.monitoring.svc.cluster.local:3000']
+      - job_name: "prometheus"
+        static_configs:
+          - target: ['prometheus.monitoring.svc.cluster.local:9090']
+
+
